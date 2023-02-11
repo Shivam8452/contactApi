@@ -14,6 +14,12 @@ app.get('/', async (req, res) => {
     res.status(200).send("Helow")
 })
 
+/*
+
+get, post, put, update
+
+*/
+
 app.post('/createContact', async (req, res) => {
   try {
     console.log(req);
