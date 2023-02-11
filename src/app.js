@@ -2,35 +2,26 @@ const express = require('express');
 const app = express();
 const axios = require('axios');
 
+require('dotenv').config()
+
 const port = process.env.PORT || 3000
 
-
+app.use(express.urlencoded({ extended: true }))
 const apiKey = process.env.FRESHSALE_API_KEY;
-// const apiBaseURL = 'https://api.freshsales.io/v2/';
-const apiBaseURL = 'https://domain.freshsales.io/api/';
+const apiBaseURL = process.env.FRESHSALE_API_ROUTE
 
 // Create a Contact
-app.get('/', async (req, res) => {
-    res.status(200).send("Helow")
-})
-
-/*
-
-get, post, put, update
-
-*/
-
 app.post('/createContact', async (req, res) => {
   try {
-    console.log(req);
+    console.log("body: ", req.body);
     const { first_name, last_name, email, mobile_number } = req.body;
-    
     const response = await axios.post(`${apiBaseURL}contacts`, {
       contact: {
         first_name,
         last_name,
         email,
-        mobile_number
+        mobile_number, 
+        "data_store": "CRM"
       }
     }, {
       headers: {
@@ -39,13 +30,19 @@ app.post('/createContact', async (req, res) => {
     });
     res.status(201).json(response.data);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.log(error);
+    res.status(400).json({ 
+        error: error.message,
+        sentData: req.params,
+        freshAPIResponse: error.response.data
+     });
   }
 });
 
 // Retrieve a Contact
-app.get('getContact/:id', async (req, res) => {
+app.get('/getContact/:id', async (req, res) => {
   try {
+    console.log("id: ", req.params);
     const { id } = req.params;
     const response = await axios.get(`${apiBaseURL}contacts/${id}`, {
       headers: {
@@ -54,7 +51,9 @@ app.get('getContact/:id', async (req, res) => {
     });
     res.status(200).json(response.data);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(404).json({ 
+        error: error.message,
+     });
   }
 });
 
@@ -88,7 +87,9 @@ app.delete('/contacts/:id', async (req, res) => {
         'Authorization': `Token token=${apiKey}`
       }
     });
-    res.status(204).json({});
+    res.status(204).json({
+        "deleted":  req.params
+    });
   } catch (error) {
     res.status(404).json({ error: error.message });
   }
